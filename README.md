@@ -26,8 +26,12 @@ com: compile program (not implemented yet)
 # CURRENT COMMANDS
 + '+': adds the last two numbers in the stack
 + '-': subtracts the last two numbers in the stack
++ '*': multiplies the last two numbers in the stack
++ '/': divides the last two numbers in the stack
++ '%': moderates the last two numbers in the stack
 + 'print': prints the last number in the stack
 + 'boolprint': prints the last number in a boolean format
 + a number: pushes the number onto the stack
++ '=': checks if the last condition is true
 + 'if': checks if conditions is true
 + 'end': needed to close 'if' blocks
