@@ -20,6 +20,7 @@ OP_DUMP=iota()
 OP_BOOLDUMP=iota()
 OP_EQUAL=iota()
 OP_IF=iota()
+OP_ELSE=iota()
 OP_END=iota()
 COUNT_OPS=iota()
 
@@ -48,6 +49,8 @@ def equal():
     return (OP_EQUAL, )
 def iif():
     return (OP_IF, )
+def eelse():
+    return (OP_ELSE, )
 def end():
     return (OP_END, )
 
@@ -71,6 +74,8 @@ def parse_word_as_op(word):
         return end()
     elif word == "if":
         return iif()
+    elif word == 'else':
+        return eelse()
     elif word == 'print':
         return dump()
     elif word == 'boolprint':
@@ -93,7 +98,7 @@ def simulate_program(program):
     stack=[]
     ip=0
     while ip < len(program):
-        assert COUNT_OPS == 12, "exhaustive handeling at simulate_program()"
+        assert COUNT_OPS == 13, "exhaustive handeling at simulate_program()"
         op = program[ip]
         if op[0] == OP_PUSH:
             stack.append(op[1])
@@ -136,10 +141,13 @@ def simulate_program(program):
         elif op[0] == OP_IF:
             a = stack.pop()
             if a == 0:
-                assert len(op) >= 2, "`if` blocks need `end` blocks"
+                assert len(op) >= 2, "`if` instructions need `end` blocks"
                 ip = op[1]
             else:
                 ip+=1
+        elif op[0] == OP_ELSE:
+            assert len(op) >= 2, "`else` instructions need `end` blocks"
+            ip = op[1]
         elif op[0] == OP_END:
             ip += 1
         elif op[0] == OP_DUMP:
@@ -147,10 +155,10 @@ def simulate_program(program):
             ip+=1
         elif op[0] == OP_BOOLDUMP:
             a = stack.pop()
-            if a == 0:
-                print("False")
-            else:
+            if a == 1:
                 print("True")
+            else:
+                print("False")
             ip+=1
         else:
             assert False, "Unrecheable"
@@ -162,13 +170,20 @@ def cross_reference_program(program):
     stack = []
     for ip in range(len(program)):
         op = program[ip]
-        assert COUNT_OPS == 12, "exhaustive handeling at cross_reference_program() remember not everything needs to be handeld in here only that that form blocks"
+        assert COUNT_OPS == 13, "exhaustive handeling at cross_reference_program() remember not everything needs to be handeld in here only that that form blocks"
         if op[0] == OP_IF:
             stack.append(ip)
-        elif op[0] == OP_END:
+        elif op[0] == OP_ELSE:
             if_ip = stack.pop()
-            assert program[if_ip][0] == OP_IF, "`End` blocks can only close `if` blocks for now"
-            program[if_ip] = (OP_IF, ip)
+            assert program[if_ip][0] == OP_IF, "`else` can only be used after `if` blocks"
+            program[if_ip] = (OP_IF, ip + 1)
+            stack.append(ip)
+        elif op[0] == OP_END:
+            block_ip = stack.pop()
+            if program[block_ip][0] == OP_IF or program[block_ip][0] == OP_ELSE:
+                program[block_ip] = (program[block_ip][0], ip)
+            else:
+                assert program[block_ip][0] == OP_IF, "`End` blocks can only close `if`-`else` blocks for now"
     return program
 
 def usage(program):

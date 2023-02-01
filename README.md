@@ -34,4 +34,5 @@ com: compile program (not implemented yet)
 + a number: pushes the number onto the stack
 + '=': checks if the last condition is true
 + 'if': checks if conditions is true
++ 'else': executes if the last if block was false
 + 'end': needed to close 'if' blocks

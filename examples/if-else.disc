@@ -1,0 +1,5 @@
+69 68 0 + = if
+    1 boolprint
+else
+    0 boolprint
+end
