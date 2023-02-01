@@ -27,4 +27,7 @@ com: compile program (not implemented yet)
 + '+': adds the last two numbers in the stack
 + '-': subtracts the last two numbers in the stack
 + 'print': prints the last number in the stack
++ 'boolprint': prints the last number in a boolean format
 + a number: pushes the number onto the stack
++ 'if': checks if conditions is true
++ 'end': needed to close 'if' blocks

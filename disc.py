@@ -1,89 +1,178 @@
-from sys import argv, exit
+import sys
 
-iota_counter = 0
-def iota(reset: bool=False) -> int:
+iota_counter=0
+def iota(reset=False):
     global iota_counter
     if reset:
         iota_counter = 0
     result = iota_counter
-    iota_counter += 1
+    iota_counter+=1
     return result
 
-OP_PLUS=iota(True)
+OP_PUSH=iota(True)
+OP_PLUS=iota() 
 OP_MINUS=iota()
+OP_TIMES=iota()
+OP_DIVIDE=iota()
 OP_DUMP=iota()
-OP_PUSH=iota()
+OP_BOOLDUMP=iota()
+OP_EQUAL=iota()
+OP_IF=iota()
+OP_END=iota()
 COUNT_OPS=iota()
+
+def uncos(xs):
+    return (xs[0], xs[1:])
 
 def plus():
     return (OP_PLUS, )
 def minus():
     return (OP_MINUS, )
+def times():
+    return (OP_TIMES, )
+def divide():
+    return (OP_DIVIDE, )
 def dump():
     return (OP_DUMP, )
+def booldump():
+    return (OP_BOOLDUMP, )
 def push(x):
     return (OP_PUSH, x)
+def equal():
+    return (OP_EQUAL, )
+def iif():
+    return (OP_IF, )
+def end():
+    return (OP_END, )
 
-def load_program_from_file(file):
-    try:
-        with open(file, "r") as f:
-            return [parse_token_as_op(word) for word in f.read().split()]
-    except FileNotFoundError:
-        print("Not a valid file only files with the exstension .disc are allowed")
-        exit()
 
-def parse_token_as_op(token):
-    assert COUNT_OPS == 4, "Exhaustive handeling in parse_token_as_op(token)"
-    if token == '+':
+def parse_word_as_op(word):
+    if word == '+':
         return plus()
-    elif token == '-':
+    elif word == '-':
         return minus()
-    elif token == 'print':
+    elif word == '*':
+        return times()
+    elif word == '/':
+        return divide()
+    elif word == "=":
+        return equal()
+    elif word == "end":
+        return end()
+    elif word == "if":
+        return iif()
+    elif word == 'print':
         return dump()
+    elif word == 'boolprint':
+        return booldump()
     else:
         try:
-            return push(int(token))
+            return push(int(word))
         except ValueError:
-            print("Unknown token named: " + token)
-            exit()
+            print("invalid word at parse_word_as_op() named: %s" %word)
+            exit(1)
+def load_file_from_path(path_to_file):
+    try:
+        with open(path_to_file, "r") as file:
+            return cross_reference_program([parse_word_as_op(word) for word in file.read().split()])
+    except FileNotFoundError:
+        print("Invalid file type or file name\nOnly file types of *.disc are alowed %s is not a valid file" %path_to_file)
+        exit(1)
 
 def simulate_program(program):
-    stack = []
-    for op in program:
-        assert COUNT_OPS == 4, "Exhaustive handeling in simulate_program(program)"
-        if op[0] == OP_PLUS:
+    stack=[]
+    ip=0
+    while ip < len(program):
+        assert COUNT_OPS == 10, "exhaustive handeling at simulate_program()"
+        op = program[ip]
+        if op[0] == OP_PUSH:
+            stack.append(op[1])
+            ip+=1
+        elif op[0] == OP_PLUS:
             a = stack.pop()
             b = stack.pop()
-            stack.append(a+b)
+            stack.append(a + b)
+            ip+=1
         elif op[0] == OP_MINUS:
             a = stack.pop()
             b = stack.pop()
-            stack.append(b-a)
+            stack.append(b - a)
+            ip+=1
+        elif op[0] == OP_TIMES:
+            a = stack.pop()
+            b = stack.pop()
+            stack.append(a * b)
+            ip+=1
+        elif op[0] == OP_DIVIDE:
+            a = stack.pop()
+            b = stack.pop()
+            stack.append(b / a)
+            ip+=1
+        elif op[0] == OP_EQUAL:
+            a = stack.pop()
+            b = stack.pop()
+            stack.append(int(a == b))
+            ip += 1
+        elif op[0] == OP_IF:
+            a = stack.pop()
+            if a == 0:
+                assert len(op) >= 2, "`if` blocks need `end` blocks"
+                ip = op[1]
+            else:
+                ip+=1
+        elif op[0] == OP_END:
+            ip += 1
         elif op[0] == OP_DUMP:
             print(stack.pop())
+            ip+=1
+        elif op[0] == OP_BOOLDUMP:
+            a = stack.pop()
+            if a == 0:
+                print("False")
+            else:
+                print("True")
+            ip+=1
         else:
-            try:
-                stack.append(int(op[1]))
-            except ValueError:
-                assert False, "Unreachable"
+            assert False, "Unrecheable"
 
-def usage():
-    print("disc [SUBCOMMAND] <ARGS>")
-    print("SUBBCOMMANDS: ")
-    print("sim: simulate program")
+def compile_program(program):
+    print("Not implemented yet")
+
+def cross_reference_program(program):
+    stack = []
+    for ip in range(len(program)):
+        op = program[ip]
+        assert COUNT_OPS ==10, "exhaustive handeling at cross_reference_program() remember not everything needs to be handeld in here only that that form blocks"
+        if op[0] == OP_IF:
+            stack.append(ip)
+        elif op[0] == OP_END:
+            if_ip = stack.pop()
+            assert program[if_ip][0] == OP_IF, "`End` blocks can only close `if` blocks for now"
+            program[if_ip] = (OP_IF, ip)
+    return program
+
+def usage(program):
+    print('usage: %s [SUBCOMMAND] <ARGS>' %program)
+    print('subcommands are: ')
+    print('sim    simulate the program')
+    print('com    compile  the program')
 
 if __name__ == '__main__':
-    if len(argv) < 3:
-        usage()
-        print("No subbcommand or args")
-        exit()
-    subcommand = argv[1]
-    file = argv[2]
-    program = load_program_from_file(file=file)
+    argv = sys.argv
+    assert len(argv) >= 1
+    (program, argv) = uncos(argv)
+    if len(argv) < 1:
+        usage(program)
+        assert False, "no subcommand provided"
+    (subcommand, argv) = uncos(argv)
+
     if subcommand == 'sim':
+        (input_file, argv) = uncos(argv)
+        program = load_file_from_path(input_file)
         simulate_program(program)
     elif subcommand == 'com':
-        assert False, "Not implemented yet"
+        (input_file, argv) = uncos(argv)
+        program = load_file_from_path(input_file)
+        compile_program(program)
     else:
-        assert False, "Invalid subcommand named: " + subcommand
-    
+        assert False, "Invalid subcommand"
