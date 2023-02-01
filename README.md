@@ -21,7 +21,7 @@ disc [SUBCOMMAND] *.disc
 sim: simulate program
 com: compile program (not implemented yet)
 ```
-<!-- ### there is also a examples folder wich you can check out for examples -->
+### there is also a examples folder wich you can check out for examples
 
 # CURRENT COMMANDS
 + '+': adds the last two numbers in the stack
