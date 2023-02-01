@@ -14,6 +14,7 @@ OP_PLUS=iota()
 OP_MINUS=iota()
 OP_TIMES=iota()
 OP_DIVIDE=iota()
+OP_MOD=iota()
 OP_DUMP=iota()
 OP_BOOLDUMP=iota()
 OP_EQUAL=iota()
@@ -32,6 +33,8 @@ def times():
     return (OP_TIMES, )
 def divide():
     return (OP_DIVIDE, )
+def mod():
+    return (OP_MOD, )
 def dump():
     return (OP_DUMP, )
 def booldump():
@@ -55,6 +58,8 @@ def parse_word_as_op(word):
         return times()
     elif word == '/':
         return divide()
+    elif word == '%':
+        return mod()
     elif word == "=":
         return equal()
     elif word == "end":
@@ -83,7 +88,7 @@ def simulate_program(program):
     stack=[]
     ip=0
     while ip < len(program):
-        assert COUNT_OPS == 10, "exhaustive handeling at simulate_program()"
+        assert COUNT_OPS == 11, "exhaustive handeling at simulate_program()"
         op = program[ip]
         if op[0] == OP_PUSH:
             stack.append(op[1])
@@ -107,6 +112,11 @@ def simulate_program(program):
             a = stack.pop()
             b = stack.pop()
             stack.append(b / a)
+            ip+=1
+        elif op[0] == OP_MOD:
+            a = stack.pop()
+            b = stack.pop()
+            stack.append(b % a)
             ip+=1
         elif op[0] == OP_EQUAL:
             a = stack.pop()
@@ -142,7 +152,7 @@ def cross_reference_program(program):
     stack = []
     for ip in range(len(program)):
         op = program[ip]
-        assert COUNT_OPS ==10, "exhaustive handeling at cross_reference_program() remember not everything needs to be handeld in here only that that form blocks"
+        assert COUNT_OPS == 11, "exhaustive handeling at cross_reference_program() remember not everything needs to be handeld in here only that that form blocks"
         if op[0] == OP_IF:
             stack.append(ip)
         elif op[0] == OP_END:
