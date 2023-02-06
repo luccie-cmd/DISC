@@ -165,6 +165,7 @@ def simulate_program(program):
 
 def compile_program(program):
     print("Not implemented yet")
+    quit(0)
 
 def cross_reference_program(program):
     stack = []
@@ -186,20 +187,22 @@ def cross_reference_program(program):
                 assert program[block_ip][0] == OP_IF, "`End` blocks can only close `if`-`else` blocks for now"
     return program
 
-def usage(program):
-    print('usage: %s [SUBCOMMAND] <ARGS>' %program)
+def usage(subcommand):
+    print('usage: disc.py subcommand: %s, ' %(subcommand))
     print('subcommands are: ')
     print('sim    simulate the program')
     print('com    compile  the program')
+    print('file: ')
 
 if __name__ == '__main__':
     argv = sys.argv
     assert len(argv) >= 1
     (program, argv) = uncos(argv)
-    if len(argv) < 1:
-        usage(program)
-        assert False, "no subcommand provided"
     (subcommand, argv) = uncos(argv)
+    if len(argv) < 1:
+        usage(subcommand)
+        print("no subcommand provided nor file")
+        quit(1)
 
     if subcommand == 'sim':
         (input_file, argv) = uncos(argv)
